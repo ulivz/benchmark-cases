@@ -1,3 +1,6 @@
+/**
+ * Setup start
+ */
 function loop(type) {
   let props = {},
     d;
@@ -64,7 +67,7 @@ function forOfObjectEntries(type) {
   if (typeof type === "function" && (d = type.defaultProps)) {
     const entries = Object.entries(d);
     for (entry of entries)
-      if (entry[1] === undefined) props[entry[0]] = entry[1];
+      if (props[entry[0]] === undefined) props[entry[0]] = entry[1];
   }
 
   return props;
@@ -78,7 +81,7 @@ function forLoopObjectKeys(type) {
   if (typeof type === "function" && (d = type.defaultProps)) {
     const keys = Object.keys(d);
     for (i = 0; i < keys.length; i++)
-      if (props[i] === undefined) props[i] = d[i];
+      if (props[keys[i]] === undefined) props[keys[i]] = d[keys[i]];
   }
 
   return props;
@@ -91,15 +94,15 @@ function forLoopObjectEntries(type) {
 
   if (typeof type === "function" && (d = type.defaultProps)) {
     const entries = Object.entries(d);
-    for (i = 0; i++; i < entries.length)
-      if (entries[i][1] === undefined) props[entries[i][0]] = d[entries[i][1]];
+    for (i = 0; i < entries.length; i++)
+      if (props[entries[i][0]] === undefined) props[entries[i][0]] = entries[i][1];
   }
 
   return props;
 }
 
 function make(defaults) {
-  function Foo() {}
+  function Foo() { }
   if (defaults !== false) Foo.defaultProps = defaults;
   return Foo;
 }
@@ -117,7 +120,7 @@ const CASES = [
   make(null),
   make(undefined),
   make(false),
-  function Bar() {},
+  function Bar() { },
   "p",
 ];
 
@@ -126,11 +129,39 @@ const run = Function(
   "fn",
   CASES.map((c, i) => `fn(CASES[${i}]);`).join("\n")
 ).bind(null, CASES);
+/**
+ * Setup end
+ */
 
-//
-const Benchmark = typeof window === 'undefined'
-  ? require("benchmark")
-  : window.Benchmark;
+const isNode = typeof window === "undefined";
+const Benchmark = isNode ? require("benchmark") : window.Benchmark;
+
+if (isNode) {
+  const assert = require("assert");
+  function runTest(fn) {
+    function  TypeWithDefaultProps() {
+
+    }
+    TypeWithDefaultProps.defaultProps = {
+      color: 'red',
+      size: 'large'
+    }
+  
+    const result = fn(TypeWithDefaultProps);
+    console.log(`run test: ${fn.name}`);
+    assert.strictEqual(result.color, 'red');
+    assert.strictEqual(result.size, 'large');
+  }
+  runTest(loop);
+  runTest(guardedLoop);
+  runTest(typeLoop);
+  runTest(typeGuardedLoop);
+  runTest(typeGuardedLoopOpt);
+  runTest(forOfObjectKeys);
+  runTest(forOfObjectEntries);
+  runTest(forLoopObjectKeys);
+  runTest(forLoopObjectEntries);
+}
 
 const suite = new Benchmark.Suite();
 
@@ -153,7 +184,7 @@ suite
   })
   .add("for of object keys", function () {
     run(forOfObjectKeys);
-  })  
+  })
   .add("for of object entries", function () {
     run(forOfObjectEntries);
   })
