@@ -57,6 +57,19 @@ function forOfObjectKeys(type) {
   return props;
 }
 
+function forOfObjectEntries(type) {
+  let props = {},
+    d;
+
+  if (typeof type === "function" && (d = type.defaultProps)) {
+    const entries = Object.entries(d);
+    for (entry of entries)
+      if (entry[1] === undefined) props[entry[0]] = entry[1];
+  }
+
+  return props;
+}
+
 function forLoopObjectKeys(type) {
   let props = {},
     d,
@@ -140,6 +153,9 @@ suite
   })
   .add("for of object keys", function () {
     run(forOfObjectKeys);
+  })  
+  .add("for of object entries", function () {
+    run(forOfObjectEntries);
   })
   .add("for loop object keys", function () {
     run(forLoopObjectKeys);
